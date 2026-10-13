@@ -1,0 +1,5 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Dropbox File Manager</title><link rel="stylesheet" href="style.css"></head><body><main>
+<h1>Dropbox File Manager</h1><p>Upload, list, download and delete files through Dropbox API.</p><div id="message">Set your Dropbox token in .env, then refresh.</div>
+<section><h2>Upload File</h2><form id="uploadForm"><input type="file" id="file" required><button>Upload to Dropbox</button></form></section>
+<section><h2>Files in Dropbox App Folder</h2><button id="refresh">Refresh Files</button><div class="table-wrap"><table><thead><tr><th>Name</th><th>Type</th><th>Size</th><th>Actions</th></tr></thead><tbody id="rows"></tbody></table></div></section>
+</main><script src="script.js"></script></body></html>

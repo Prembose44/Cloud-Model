@@ -1,0 +1,59 @@
+PRACTICAL 3 — MONGODB ATLAS CRUD (SEPARATE FRONTEND AND BACKEND)
+Files: server.js, package.json, .env, .gitignore, public/index.html, public/style.css, public/script.js
+
+A. CREATE ATLAS DATABASE ACCESS
+1. Open https://www.mongodb.com/cloud/atlas and sign in.
+2. Create/select a project.
+3. Create a cluster (choose a free tier if offered).
+4. Open Security -> Database Access -> Add New Database User.
+5. Create a username/password. This is a database user, not your Atlas website login.
+6. Open Security -> Network Access -> Add IP Address.
+7. Add your current IP and save. Do not leave broad network access enabled unnecessarily.
+8. Open your cluster -> Connect -> Drivers -> Node.js.
+9. Copy the URI. Replace username/password with your database user credentials.
+10. Add a database name, e.g. studentDB, before the query string:
+    mongodb+srv://USERNAME:PASSWORD@YOUR-CLUSTER-HOST/studentDB?retryWrites=true&w=majority
+11. Keep the exact cluster hostname and options supplied by Atlas. URL-encode special characters in the password.
+
+B. INSTALL
+1. Install Node.js LTS from https://nodejs.org/.
+2. Open this folder in VS Code.
+3. Open Terminal -> New Terminal.
+4. Run:
+   npm install
+5. Copy .env.example to a new file named .env.
+6. Put your real URI in .env:
+   MONGODB_URI=mongodb+srv://...
+   PORT=5000
+7. Save .env. Do not upload it or share it.
+
+C. START AND TEST
+1. Run:
+   npm start
+2. Expected:
+   Connected to MongoDB Atlas
+   Student CRUD app running at http://localhost:5000
+3. Open http://localhost:5000 in your browser.
+4. Add a student, edit a student, and delete a student.
+5. Open Atlas -> your cluster -> Browse Collections.
+6. After the first insert, inspect database studentDB and collection students.
+
+D. OPTIONAL POSTMAN API TESTS
+POST   http://localhost:5000/api/students
+GET    http://localhost:5000/api/students
+GET    http://localhost:5000/api/students/<MongoDB _id>
+PUT    http://localhost:5000/api/students/<MongoDB _id>
+DELETE http://localhost:5000/api/students/<MongoDB _id>
+For POST/PUT choose Body -> raw -> JSON:
+{"name":"Arun","registerNumber":"101","department":"IT","email":"arun@example.com"}
+Use the _id returned by GET, not a number like 1.
+
+E. TROUBLESHOOTING
+- MONGODB_URI missing: ensure .env exists in the project root and is named exactly .env.
+- Authentication failed: verify database username/password and encode special password characters.
+- IP not allowed: add your current public IP in Network Access.
+- DNS/SRV error: check internet and copy the URI from Atlas again.
+- Duplicate register number: registerNumber is unique; use a new value.
+- Port in use: change PORT=5001 in .env and open localhost:5001.
+- Browser cannot connect: keep npm start terminal open and check its errors.
+Never put your Atlas connection string into frontend JavaScript or a public repository.

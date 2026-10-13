@@ -1,0 +1,14 @@
+{
+  "name": "auth0-only-crud-app",
+  "version": "1.0.0",
+  "description": "Auth0 protected CRUD demo using Express and in-memory records",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-oauth2-jwt-bearer": "^1.6.0"
+  }
+}

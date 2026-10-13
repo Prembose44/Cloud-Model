@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Auth0 Patient CRUD</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="https://cdn.auth0.com/js/auth0-spa-js/2.1/auth0-spa-js.production.js"></script>
+  <script defer src="/app.js"></script>
+</head>
+<body>
+  <main class="container">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">AUTH0-ONLY PRACTICAL</p>
+        <h1>Patient Management</h1>
+        <p class="sub">Sign in with Auth0 to manage patient records.</p>
+      </div>
+      <div class="auth-buttons">
+        <button id="loginBtn">Login</button>
+        <button id="logoutBtn" class="secondary hidden">Logout</button>
+      </div>
+    </header>
+
+    <section id="status" class="status">Checking authentication setup…</section>
+    <section id="appPanel" class="hidden">
+      <p id="welcome" class="welcome"></p>
+      <div class="panel">
+        <h2 id="formTitle">Add patient</h2>
+        <form id="patientForm">
+          <input id="patientId" type="hidden">
+          <div class="fields">
+            <label>Name<input id="name" required placeholder="Patient name"></label>
+            <label>Age<input id="age" type="number" min="1" required placeholder="Age"></label>
+            <label>Disease<input id="disease" required placeholder="Disease"></label>
+          </div>
+          <div class="form-actions">
+            <button type="submit" id="saveBtn">Add Patient</button>
+            <button type="button" id="cancelBtn" class="secondary hidden">Cancel edit</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="panel">
+        <div class="table-head">
+          <h2>Patient records</h2>
+          <button id="refreshBtn" class="secondary">Refresh</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>ID</th><th>Name</th><th>Age</th><th>Disease</th><th>Actions</th></tr></thead>
+            <tbody id="patientsBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer>Lab demo: records are stored in memory and reset when the server restarts.</footer>
+</body>
+</html>

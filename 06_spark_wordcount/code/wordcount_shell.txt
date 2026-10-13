@@ -1,0 +1,5 @@
+# Enter these one at a time in spark-shell, following installation_steps.txt
+val inputfile = sc.textFile("input.txt")
+val counts = inputfile.flatMap(line => line.split(" ")).map(word => (word, 1)).reduceByKey(_ + _)
+counts.saveAsTextFile("output")
+:quit

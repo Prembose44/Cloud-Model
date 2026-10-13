@@ -1,0 +1,29 @@
+cloud_lab_cheatsheet/
+├── 01_restful_api/
+├── 02_firebase_hosting_firestore/
+├── 03_mongodb_crud/
+├── 04_dropbox_api/
+├── 05_hadoop_wordcount/
+│   ├── installation_steps.txt
+│   └── code/
+├── 06_spark_wordcount/
+│   ├── installation_steps.txt
+│   └── code/
+├── 07_openmp_cpp/
+│   ├── installation_steps.txt
+│   └── code/hello_omp.cpp
+├── 08_mpi_python/
+│   ├── installation_steps.txt
+│   └── code/mpi_example.py
+├── 09_cloudsim/
+│   ├── installation_steps.txt
+│   └── code/BasicResourceAllocation.java
+└── 10_cloudanalyst/
+    ├── installation_steps.txt
+    └── SOURCE_LINK.txt
+11_auth0_crud_only/
+    ├── installation_steps.txt
+    ├── server.js
+    ├── package.json
+    ├── .env.example
+    └── public/ (index.html, style.css, app.js)

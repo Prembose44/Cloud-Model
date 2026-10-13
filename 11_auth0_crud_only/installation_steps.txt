@@ -1,0 +1,73 @@
+PRACTICAL 11 — AUTH0-ONLY AUTHENTICATION + CRUD APP
+
+This practical is an additional app, separate from the other ten folders.
+It uses Auth0 only for login/access-token authentication. Patient records are stored in server memory, so they reset when the server restarts.
+
+REQUIREMENTS
+- Node.js 18 or later
+- An Auth0 account/tenant
+- Internet access for Auth0 login
+
+PART A — CREATE AN AUTH0 API
+1. Sign in to https://manage.auth0.com/
+2. Open Applications / APIs (depending on the dashboard layout) and create an API.
+3. Use a name such as `Hospital CRUD API`.
+4. Set the Identifier / Audience to:
+   https://hospital-crud-api
+   Use this exact same value in `.env` and `public/app.js`.
+5. Keep the signing algorithm as RS256 if asked.
+
+PART B — CREATE AN AUTH0 SINGLE-PAGE APPLICATION
+6. Create an application of type `Single Page Application`.
+7. In the application settings, copy the Domain and Client ID.
+8. Set the following application URLs for local development:
+   Allowed Callback URLs: http://localhost:5001
+   Allowed Logout URLs:   http://localhost:5001
+   Allowed Web Origins:   http://localhost:5001
+9. Save changes.
+
+PART C — CONFIGURE THE APP
+10. Open a terminal in this `11_auth0_crud_only` folder.
+11. Install dependencies:
+    npm install
+12. Copy `.env.example` to `.env`.
+    Linux/macOS:
+    cp .env.example .env
+    Windows PowerShell:
+    Copy-Item .env.example .env
+13. Open `.env` and replace the placeholders:
+    PORT=5001
+    AUTH0_DOMAIN=your-tenant-region.auth0.com
+    AUTH0_AUDIENCE=https://hospital-crud-api
+    AUTH0_CLIENT_ID=your_single_page_application_client_id
+    Do not include `https://` in AUTH0_DOMAIN if the code already adds it.
+    Do not share or commit `.env`.
+
+PART D — RUN THE APP
+14. Start the server:
+    npm start
+15. Open:
+    http://localhost:5001
+16. Click Login. Sign in using your Auth0 account.
+17. After login, the app requests an access token for `https://hospital-crud-api` and uses it to call the protected API.
+
+PART E — TEST CRUD
+18. Create: fill Name, Age, Disease and click Add Patient.
+19. Read: the table displays all records after login.
+20. Update: click Edit for a record, change its values, then click Save.
+21. Delete: click Delete for a record.
+22. Click Logout to end the local Auth0 session.
+
+API ENDPOINTS (all require a valid Auth0 access token)
+GET    /api/patients
+POST   /api/patients
+PUT    /api/patients/:id
+DELETE /api/patients/:id
+
+TESTING NOTES
+- The API is protected. Requests without a valid access token should return 401.
+- The Auth0 SPA application must request the same audience configured in `.env`.
+- Use the API Identifier as the audience, not the SPA Client ID.
+- If login succeeds but API requests fail, verify AUTH0_DOMAIN, AUTH0_AUDIENCE, the API identifier, and the allowed URLs.
+- Records are stored in memory only; restart clears changes.
+- This app deliberately uses Auth0 only for authentication and does not include MongoDB/Dropbox/Firebase.

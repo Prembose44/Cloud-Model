@@ -1,0 +1,62 @@
+PRACTICAL 4 — DROPBOX API FILE MANAGER
+Features: list, upload, download, delete files in the Dropbox app folder.
+Files: server.js, package.json, .env, public/index.html, public/style.css, public/script.js
+
+A. CREATE DROPBOX APP AND TOKEN
+1. Open https://www.dropbox.com/developers/apps and sign in.
+2. Click Create app.
+3. Choose Scoped access.
+4. Choose App folder access for a safer lab app. The application will only access its own app folder.
+5. Enter an app name and create the app.
+6. Open the Permissions tab.
+7. Enable these scopes:
+   files.metadata.read
+   files.content.read
+   files.content.write
+8. Click Submit/Save if shown.
+9. Open Settings. If a short-lived access token can be generated for the app, generate one for testing. Otherwise complete the OAuth authorization flow supported by the app.
+10. Copy the token privately. Never put it in index.html or script.js.
+
+B. INSTALL AND CONFIGURE
+1. Install Node.js LTS from https://nodejs.org/.
+2. Open the 04_dropbox_api folder in VS Code.
+3. Open Terminal -> New Terminal.
+4. Run:
+   npm install
+5. Copy .env.example to a file named .env in this folder.
+6. Open .env and set:
+   DROPBOX_ACCESS_TOKEN=YOUR_REAL_ACCESS_TOKEN
+   PORT=5001
+7. Save the file. Do not include angle brackets or example placeholder text.
+8. Keep .env private. It is excluded by .gitignore.
+
+C. START
+1. Run:
+   npm start
+2. Expected:
+   Dropbox File Manager running at http://localhost:5001
+3. Open http://localhost:5001 in your browser.
+4. Click Refresh Files to list files.
+5. Choose a small test file and click Upload to Dropbox.
+6. After upload, the file should appear in the list.
+7. Click Download to test downloading.
+8. Click Delete only on a test file to verify delete functionality.
+
+D. VERIFY IN DROPBOX
+1. Open Dropbox in your browser.
+2. Open the Apps section and locate the folder created for your app.
+3. Confirm the uploaded test file is visible.
+4. With App folder access, the app lists the app-specific folder, not your entire Dropbox.
+
+E. COMMON ERRORS
+- Token invalid/expired: generate a fresh token or re-run OAuth authorization.
+- Missing scope: enable the three scopes above and re-authorize the token.
+- 401: invalid or expired token.
+- 403: app does not have the needed scope/access.
+- Empty listing: check the app folder and ensure a file has been uploaded.
+- Missing token message: confirm .env is in the same folder as package.json and named exactly .env.
+- Port in use: change PORT to 5002 and open localhost:5002.
+- Upload too large: starter limits files to 10 MB; try a smaller file.
+- If Dropbox token was exposed, revoke it and generate another.
+
+Security: this is a lab demonstration. For a production multi-user app, implement Dropbox OAuth and securely store refresh tokens rather than manually pasting a token.

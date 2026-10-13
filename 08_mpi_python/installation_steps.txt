@@ -1,0 +1,22 @@
+PRACTICAL: MPI WITH PYTHON — BASED ON labs 2.0.txt
+
+The TXT uses MPICH with mpi4py.
+
+1. Install packages
+sudo apt update
+sudo apt install -y python3 mpich python3-mpi4py
+
+2. Create the Python file
+nano mpi_example.py
+
+Copy code/mpi_example.py into the file.
+
+Save and exit nano:
+Ctrl+O, Enter, Ctrl+X.
+
+3. Run the program
+mpirun -np 2 python3 mpi_example.py
+
+4. Expected output (order can vary)
+Hello from process 0 out of 2
+Hello from process 1 out of 2

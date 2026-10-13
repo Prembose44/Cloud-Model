@@ -1,0 +1,13 @@
+PRACTICAL: CLOUDANALYST — SOURCE-BASED
+
+The uploaded labs 2.0.txt provides this CloudAnalyst download page:
+https://sourceforge.net/projects/cloudanalystnetbeans/
+
+The TXT does not provide CloudAnalyst installation commands, a configuration sequence, a sample scenario, or expected output. Therefore this folder records the source link without inventing command sequences.
+
+1. Open the URL above.
+2. Download the CloudAnalyst package available from that page.
+3. Follow the installation/run instructions packaged with that download or supplied by your instructor.
+4. If your instructor provides a CloudAnalyst/NetBeans project, open that project in the required NetBeans version and run it according to the included project instructions.
+
+Source limitation: only the URL is present in the uploaded TXT. The detailed GUI steps and simulation parameters are not specified there.

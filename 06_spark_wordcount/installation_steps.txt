@@ -1,0 +1,64 @@
+PRACTICAL: APACHE SPARK WORD COUNT — BASED ON labs 2.0.txt
+
+Run in Ubuntu/Linux terminal.
+
+1. Install Java and required tools
+sudo apt update
+sudo apt install -y openjdk-17-jdk curl wget tar gzip
+java -version
+
+2. Download and extract Spark
+cd ~
+wget https://downloads.apache.org/spark/spark-4.2.0/spark-4.2.0-bin-hadoop3.tgz
+tar -xzf spark-4.2.0-bin-hadoop3.tgz
+mv spark-4.2.0-bin-hadoop3 spark
+
+3. Configure Spark
+The TXT uses echo commands. Run:
+echo 'export SPARK_HOME=$HOME/spark' >> ~/.bashrc
+echo 'export PATH=$SPARK_HOME/bin:$PATH' >> ~/.bashrc
+source ~/.bashrc
+
+Note: The uploaded TXT has `PATH=SPARK_HOME/bin` without `$` expansion and without preserving the existing PATH. The command above corrects that shell-variable typo.
+
+4. Start Spark
+spark-shell
+Exit first using:
+:quit
+
+5. Create the input file
+cd ~
+nano input.txt
+
+Enter:
+hello world
+hello spark
+world spark
+
+Save: Ctrl+O, Enter, Ctrl+X.
+
+6. Run Word Count
+spark-shell
+
+At the `scala>` prompt, enter one line at a time:
+val inputfile = sc.textFile("input.txt")
+val counts = inputfile.flatMap(line => line.split(" ")).map(word => (word, 1)).reduceByKey(_ + _)
+counts.saveAsTextFile("output")
+
+Exit:
+:quit
+
+7. Display output
+cd ~/output
+ls
+cat part-00000
+
+Expected output:
+(hello,2)
+(world,2)
+(spark,2)
+
+If you run the program again, delete the existing output folder first:
+rm -rf ~/output
+
+Note: The source TXT uses `sc.textFile("input.txt")` and `line.split(" ")`; those are retained here.

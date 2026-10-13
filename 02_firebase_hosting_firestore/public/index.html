@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Firebase Student CRUD</title>
+<style>
+body{font-family:Arial,sans-serif;max-width:950px;margin:30px auto;padding:0 16px;color:#222}
+form,section{border:1px solid #ddd;border-radius:9px;padding:16px;margin:16px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+label{display:block;margin:8px 0}input{box-sizing:border-box;width:100%;padding:10px;margin-top:5px;border:1px solid #bbb;border-radius:5px}
+button{padding:9px 12px;margin:4px;border:0;border-radius:5px;cursor:pointer}.save{background:#1769aa;color:white}.del{background:#b42318;color:white}
+#status{background:#f3f5f7;padding:10px;border-radius:5px;white-space:pre-wrap}.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}td,th{padding:9px;border-bottom:1px solid #ddd;text-align:left}th{background:#eef2f6}
+</style></head><body>
+<h1>Student Management</h1><p>Firebase Hosting + Cloud Firestore</p><div id="status">Replace the Firebase configuration before use.</div>
+<form id="form"><h2 id="title">Add Student</h2><input type="hidden" id="docId">
+<div class="grid">
+<label>Name<input id="name" required></label><label>Register Number<input id="registerNumber" required></label>
+<label>Department<input id="department" required></label><label>Email<input id="email" type="email" required></label>
+</div><button class="save" id="save">Add Student</button><button type="button" id="cancel" hidden>Cancel</button></form>
+<section><h2>Registered Students</h2><div class="table-wrap"><table><thead><tr><th>Name</th><th>Register No.</th><th>Department</th><th>Email</th><th>Actions</th></tr></thead><tbody id="rows"></tbody></table></div></section>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// Replace placeholders with your app's config from Firebase Console -> Project settings -> Your apps.
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT_ID.appspot.com",
+  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+const statusBox=document.getElementById("status"), form=document.getElementById("form"), rows=document.getElementById("rows");
+const docId=document.getElementById("docId"), title=document.getElementById("title"), save=document.getElementById("save"), cancel=document.getElementById("cancel");
+let db;
+const say=t=>statusBox.textContent=t;
+const fields=["name","registerNumber","department","email"];
+const data=()=>Object.fromEntries(fields.map(k=>[k,document.getElementById(k).value.trim()]));
+function reset(){form.reset();docId.value="";title.textContent="Add Student";save.textContent="Add Student";cancel.hidden=true}
+async function load(){
+ try{
+  const snap=await getDocs(query(collection(db,"students"),orderBy("name")));
+  rows.replaceChildren();
+  if(snap.empty){rows.innerHTML='<tr><td colspan="5">No students found.</td></tr>';return}
+  snap.forEach(d=>{
+   const s={id:d.id,...d.data()},tr=document.createElement("tr");
+   [s.name,s.registerNumber,s.department,s.email].forEach(v=>{const td=document.createElement("td");td.textContent=v||"";tr.appendChild(td)});
+   const td=document.createElement("td"),edit=document.createElement("button"),del=document.createElement("button");
+   edit.textContent="Edit";edit.onclick=()=>{docId.value=s.id;fields.forEach(k=>document.getElementById(k).value=s[k]||"");title.textContent="Update Student";save.textContent="Save Changes";cancel.hidden=false};
+   del.textContent="Delete";del.className="del";del.onclick=async()=>{if(!confirm("Delete "+s.name+"?"))return;try{await deleteDoc(doc(db,"students",s.id));say("Student deleted.");await load()}catch(e){say("Delete failed: "+e.message)}};
+   td.append(edit,del);tr.appendChild(td);rows.appendChild(tr);
+  });
+ }catch(e){say("Firestore read failed. Check configuration, database, and rules.\n"+e.message)}
+}
+form.onsubmit=async e=>{e.preventDefault();try{if(docId.value){await updateDoc(doc(db,"students",docId.value),data());say("Student updated.")}else{await addDoc(collection(db,"students"),data());say("Student added.")}reset();await load()}catch(err){say("Save failed: "+err.message)}};
+cancel.onclick=reset;
+try{db=getFirestore(initializeApp(firebaseConfig));say("Firebase initialized. Loading records...");await load()}catch(e){say("Firebase initialization failed. Replace config placeholders.\n"+e.message)}
+</script></body></html>

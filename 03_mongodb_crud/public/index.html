@@ -1,0 +1,7 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MongoDB Atlas Student CRUD</title><link rel="stylesheet" href="style.css"></head><body><main>
+<h1>Student Management</h1><p>Node.js + Express + Mongoose + MongoDB Atlas</p><div id="message">Loading...</div>
+<form id="studentForm"><h2 id="formTitle">Add Student</h2><input type="hidden" id="id">
+<label>Name<input id="name" required></label><label>Register Number<input id="registerNumber" required></label><label>Department<input id="department" required></label><label>Email<input id="email" type="email" required></label>
+<button type="submit" id="save">Add Student</button><button type="button" id="cancel" hidden>Cancel</button></form>
+<section><h2>Registered Students</h2><button id="refresh">Refresh</button><div class="table-wrap"><table><thead><tr><th>Name</th><th>Register No.</th><th>Department</th><th>Email</th><th>Actions</th></tr></thead><tbody id="rows"></tbody></table></div></section>
+</main><script src="script.js"></script></body></html>

@@ -1,0 +1,22 @@
+PRACTICAL: CLOUDSIM BASIC RESOURCE ALLOCATION — SOURCE-BASED
+
+The uploaded TXT supplies the CloudSim 3.0.3 release URL and the Java program, but it does not give terminal installation commands, IDE setup steps, or a build/run command.
+
+1. Open the release URL given in the TXT:
+https://github.com/Cloudslab/cloudsim/releases/tag/cloudsim-3.0.3
+
+2. Download the CloudSim 3.0.3 release/source package from that release page and extract it.
+
+3. Use a Java IDE/project setup that can compile the CloudSim 3.0.3 examples and its dependencies. The exact IDE/import steps are not specified in the uploaded TXT.
+
+4. Create a Java class named `BasicResourceAllocation` in package:
+org.cloudbus.cloudsim.examples
+
+5. Copy `code/BasicResourceAllocation.java` into that class.
+
+6. Run `BasicResourceAllocation` as a Java application after the CloudSim libraries/dependencies are configured.
+
+7. Expected behavior: the simulation creates one host, a datacenter, a broker, two VMs and two cloudlets; after simulation it prints each cloudlet's status and VM ID.
+
+SOURCE LIMITATION:
+The release URL and code are source-provided. Steps 2–6 are a minimal workflow to explain how the provided code is used; the TXT itself does not specify a particular IDE, dependency list, or exact compile/run commands. If the instructor supplies an IDE/project template, use that template.

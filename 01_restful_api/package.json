@@ -1,0 +1,8 @@
+{
+  "name": "cloud-lab-restful-api",
+  "version": "1.0.0",
+  "description": "Standalone Express CRUD API for cloud lab",
+  "main": "index.js",
+  "scripts": { "start": "node index.js" },
+  "dependencies": { "express": "^4.21.2" }
+}

@@ -1,0 +1,35 @@
+WORDCOUNT COMPILE/RUN EXAMPLE INCLUDED IN THIS CONSOLIDATED FOLDER
+
+After completing Hadoop setup and starting HDFS/YARN:
+
+1. Make a working folder and copy WordCount.java and input.txt into it.
+mkdir -p ~/wordcount
+cd ~/wordcount
+
+2. Compile and package. Ensure WordCount.java and input.txt are in ~/wordcount.
+export HADOOP_CLASSPATH=$(hadoop classpath)
+mkdir -p classes
+javac -classpath "$HADOOP_CLASSPATH" -d classes WordCount.java
+jar -cvf wordcount.jar -C classes/ .
+
+3. Upload input to HDFS:
+hdfs dfs -mkdir -p /user/$USER/wordcount/input
+hdfs dfs -put -f input.txt /user/$USER/wordcount/input/
+
+4. If a previous output folder exists, remove that output only:
+hdfs dfs -rm -r /user/$USER/wordcount/output
+
+5. Run:
+hadoop jar wordcount.jar WordCount /user/$USER/wordcount/input /user/$USER/wordcount/output
+
+6. View:
+hdfs dfs -cat /user/$USER/wordcount/output/part-r-00000
+
+Expected words/counts:
+fun     1
+hadoop  2
+hello   2
+is      1
+world   1
+
+These compile/run commands and the Java source are supplied as an added runnable example; they are not present in the Hadoop section of the uploaded TXT.

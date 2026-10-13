@@ -1,0 +1,95 @@
+PRACTICAL 1 — RESTFUL API USING NODE.JS, EXPRESS AND POSTMAN
+Scenario: Hospital Patient Management
+Files: index.js, package.json
+
+A. CHECK REQUIREMENTS
+1. Install Node.js LTS from https://nodejs.org/.
+2. Open Windows Command Prompt (CMD) or VS Code terminal.
+3. Run:
+   node -v
+   npm -v
+   Both commands should display version numbers.
+4. Install Postman Desktop from https://www.postman.com/downloads/ or use your institution's Postman installation.
+
+B. START THE PROJECT
+1. Open the 01_restful_api folder in VS Code.
+2. Open Terminal -> New Terminal. Confirm the terminal is inside 01_restful_api.
+3. Run:
+   npm install
+4. Run:
+   npm start
+5. Expected:
+   patient API running at http://localhost:8080
+6. Leave the terminal open. Do not close it while testing.
+
+C. TEST USING POSTMAN
+For each test, create a new HTTP request, choose the method, enter the URL, and click Send.
+
+1. GET all patients
+   Method: GET
+   URL: http://localhost:8080/api/patients
+   Expected: 200 OK and an array containing Arun and Priya.
+
+2. GET one patient
+   Method: GET
+   URL: http://localhost:8080/api/patients/1
+   Expected: 200 OK and Arun's object.
+
+3. POST a patient
+   Method: POST
+   URL: http://localhost:8080/api/patients
+   Select Body -> raw -> JSON, then enter:
+   {
+     "name": "Kumar",
+     "age": 40,
+     "disease": "Diabetes"
+   }
+   Expected: 201 Created and the new patient object.
+
+4. PUT an existing patient
+   Method: PUT
+   URL: http://localhost:8080/api/patients/1
+   Body -> raw -> JSON:
+   {
+     "name": "Arun Kumar",
+     "age": 26,
+     "disease": "Fever"
+   }
+   Expected: 200 OK and the updated patient.
+
+5. DELETE a patient
+   Method: DELETE
+   URL: http://localhost:8080/api/patients/2
+   No body required.
+   Expected: 200 OK and a deletion-success message.
+
+6. To verify changes, send GET http://localhost:8080/api/patients again.
+
+D. CHANGE TO STUDENT MANAGEMENT
+In index.js, replace only the RESOURCE object with:
+const RESOURCE = {
+  plural: "students",
+  singular: "student",
+  fields: ["name", "registerNumber", "department", "email"],
+  initialData: [
+    { id: 1, name: "Arun", registerNumber: "101", department: "IT", email: "arun@example.com" },
+    { id: 2, name: "Priya", registerNumber: "102", department: "CSE", email: "priya@example.com" }
+  ]
+};
+Save. In terminal press Ctrl+C, then run npm start again.
+Use /api/students instead of /api/patients. POST/PUT body example:
+{
+  "name": "Kumar",
+  "registerNumber": "103",
+  "department": "IT",
+  "email": "kumar@example.com"
+}
+
+E. COMMON ERRORS
+- 'node' or 'npm' not recognized: install Node.js LTS and restart the terminal.
+- Cannot find module express: run npm install inside this folder.
+- Port 8080 already in use: close the other server or change 8080 in index.js and update every Postman URL.
+- Postman says Could not send request: make sure node index.js/npm start is still running.
+- POST body ignored: choose Body -> raw -> JSON and set Content-Type to application/json.
+- 404 patient not found: verify the ID and route.
+Note: This starter uses an in-memory array, not a database. Data resets when the server restarts.
