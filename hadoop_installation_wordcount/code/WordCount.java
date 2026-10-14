@@ -1,4 +1,6 @@
 import java.io.IOException;
+import java.util.StringTokenizer;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
@@ -10,25 +12,27 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 public class WordCount {
-    public static class TokenizerMapper extends Mapper<Object, Text, Text, IntWritable> {
-        private final static IntWritable one = new IntWritable(1);
+    public static class TokenizerMapper
+            extends Mapper<Object, Text, Text, IntWritable> {
+        private static final IntWritable ONE = new IntWritable(1);
         private final Text word = new Text();
 
+        @Override
         public void map(Object key, Text value, Context context)
                 throws IOException, InterruptedException {
-            String[] words = value.toString().split("\\s+");
-            for (String item : words) {
-                if (!item.isEmpty()) {
-                    word.set(item);
-                    context.write(word, one);
-                }
+            StringTokenizer tokens = new StringTokenizer(value.toString());
+            while (tokens.hasMoreTokens()) {
+                word.set(tokens.nextToken());
+                context.write(word, ONE);
             }
         }
     }
 
-    public static class IntSumReducer extends Reducer<Text, IntWritable, Text, IntWritable> {
+    public static class IntSumReducer
+            extends Reducer<Text, IntWritable, Text, IntWritable> {
         private final IntWritable result = new IntWritable();
 
+        @Override
         public void reduce(Text key, Iterable<IntWritable> values, Context context)
                 throws IOException, InterruptedException {
             int sum = 0;
@@ -45,7 +49,9 @@ public class WordCount {
             System.err.println("Usage: WordCount <input path> <output path>");
             System.exit(2);
         }
-        Job job = Job.getInstance(new Configuration(), "word count");
+
+        Configuration conf = new Configuration();
+        Job job = Job.getInstance(conf, "word count");
         job.setJarByClass(WordCount.class);
         job.setMapperClass(TokenizerMapper.class);
         job.setCombinerClass(IntSumReducer.class);

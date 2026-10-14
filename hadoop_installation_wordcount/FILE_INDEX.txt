@@ -1,0 +1,11 @@
+Hadoop Installation + WordCount package
+
+- README.txt
+- installation_steps.txt
+- config/core-site.xml
+- config/hdfs-site.xml
+- config/mapred-site.xml
+- config/yarn-site.xml
+- code/WordCount.java
+- code/input.txt
+- code/WORDCOUNT_RUN.txt

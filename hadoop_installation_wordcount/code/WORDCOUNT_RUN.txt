@@ -1,0 +1,71 @@
+WORDCOUNT — COMPILE, PACKAGE, UPLOAD, RUN, AND VERIFY
+=====================================================
+
+Assumption: Hadoop is installed and HDFS + YARN are running, and the XML configuration
+has been completed using your actual home path.
+
+1. Create a work folder and copy the supplied source and input files:
+
+    mkdir -p ~/wordcount
+    cp /path/to/extracted/hadoop_installation_wordcount/code/WordCount.java ~/wordcount/
+    cp /path/to/extracted/hadoop_installation_wordcount/code/input.txt ~/wordcount/
+    cd ~/wordcount
+
+   Replace /path/to/extracted/... with the real path where you extracted this ZIP.
+   Alternatively, open code/WordCount.java and code/input.txt and create files with the
+   same names in ~/wordcount using nano.
+
+2. Set the Hadoop compile classpath and compile:
+
+    export HADOOP_CLASSPATH="$(hadoop classpath)"
+    mkdir -p classes
+    javac -classpath "$HADOOP_CLASSPATH" -d classes WordCount.java
+
+   If javac reports errors, verify JAVA_HOME and HADOOP_HOME first.
+
+3. Package the compiled class files into a JAR:
+
+    jar -cvf wordcount.jar -C classes .
+    ls -lh wordcount.jar
+
+4. Check the sample input:
+
+    cat input.txt
+
+   Expected input:
+    hello world hello hadoop
+
+5. Create the HDFS input folder and upload the input file:
+
+    hdfs dfs -mkdir -p /user/$USER/input
+    hdfs dfs -put -f input.txt /user/$USER/input/
+    hdfs dfs -ls /user/$USER/input
+    hdfs dfs -cat /user/$USER/input/input.txt
+
+6. Run WordCount. The output path must not already exist:
+
+    hadoop jar wordcount.jar WordCount /user/$USER/input /user/$USER/output
+
+7. Display the output:
+
+    hdfs dfs -cat /user/$USER/output/part-r-00000
+
+   Expected output (key order may be alphabetical):
+
+    hadoop  1
+    hello   2
+    world   1
+
+8. To run it again, remove only the old output directory, then rerun:
+
+    hdfs dfs -rm -r /user/$USER/output
+    hadoop jar wordcount.jar WordCount /user/$USER/input /user/$USER/output
+    hdfs dfs -cat /user/$USER/output/part-r-00000
+
+   Do not remove the input directory when rerunning. The input and JAR can be reused
+   unless you change them.
+
+9. Stop the services after finishing (optional if continuing with another lab):
+
+    stop-yarn.sh
+    stop-dfs.sh

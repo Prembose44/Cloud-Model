@@ -1,0 +1,334 @@
+HADOOP 3.3.6 — COMPLETE INSTALLATION GUIDE
+==========================================
+
+Environment: Ubuntu VM, OpenJDK 11, Hadoop 3.3.6, single-node pseudo-distributed mode.
+Install location: $HOME/hadoop
+
+PART 1 — CHECK UBUNTU AND INSTALL PREREQUISITES
+-----------------------------------------------
+
+1. Check the system and home directory:
+
+    lsb_release -a
+    whoami
+    echo $HOME
+
+2. Update packages and install Java 11 and SSH:
+
+    sudo apt update
+    sudo apt install openjdk-11-jdk openssh-server ssh wget -y
+
+3. Verify Java and SSH:
+
+    java -version
+    javac -version
+    ssh -V
+
+   If Ubuntu cannot find openjdk-11-jdk in your configured repositories, stop and check
+   the Ubuntu release/repositories before choosing a different Java version. This guide
+   is written for Java 11.
+
+4. Find the real JAVA_HOME path:
+
+    dirname "$(dirname "$(readlink -f "$(which java)")")"
+
+   Copy the path printed by the command. On many x86-64 Ubuntu systems it is:
+   /usr/lib/jvm/java-11-openjdk-amd64
+   Use the path printed on your VM if it differs.
+
+PART 2 — DOWNLOAD AND INSTALL HADOOP
+------------------------------------
+
+5. Download the Hadoop 3.3.6 archive from the Apache Archive:
+
+    cd ~
+    wget https://archive.apache.org/dist/hadoop/common/hadoop-3.3.6/hadoop-3.3.6.tar.gz
+
+6. Verify the download before extracting:
+
+    ls -lh hadoop-3.3.6.tar.gz
+    file hadoop-3.3.6.tar.gz
+
+   The file command should identify a gzip-compressed archive. If it identifies HTML,
+   do not extract it; download the archive again.
+
+7. Extract and rename the folder:
+
+    tar -xzf hadoop-3.3.6.tar.gz
+    mv hadoop-3.3.6 hadoop
+
+8. Verify Hadoop:
+
+    ~/hadoop/bin/hadoop version
+
+PART 3 — SET ENVIRONMENT VARIABLES
+----------------------------------
+
+9. Open the Bash configuration file:
+
+    nano ~/.bashrc
+
+   Add these lines at the bottom. Replace JAVA_HOME with the path found in Step 4.
+
+    export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+    export HADOOP_HOME=$HOME/hadoop
+    export HADOOP_INSTALL=$HADOOP_HOME
+    export HADOOP_MAPRED_HOME=$HADOOP_HOME
+    export HADOOP_COMMON_HOME=$HADOOP_HOME
+    export HADOOP_HDFS_HOME=$HADOOP_HOME
+    export HADOOP_YARN_HOME=$HADOOP_HOME
+    export HADOOP_COMMON_LIB_NATIVE_DIR=$HADOOP_HOME/lib/native
+    export PATH=$PATH:$HADOOP_HOME/bin:$HADOOP_HOME/sbin
+    export HADOOP_OPTS="-Djava.library.path=$HADOOP_HOME/lib/native"
+
+   Save nano: Ctrl+O, Enter; exit: Ctrl+X.
+
+10. Reload and verify:
+
+    source ~/.bashrc
+    echo "$JAVA_HOME"
+    echo "$HADOOP_HOME"
+    hadoop version
+
+11. Set JAVA_HOME in Hadoop's own environment file:
+
+    nano "$HADOOP_HOME/etc/hadoop/hadoop-env.sh"
+
+   Add or update this line using the same real Java path:
+
+    export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+
+   Save and exit. Do not leave two conflicting JAVA_HOME definitions.
+
+PART 4 — CONFIGURE THE FOUR XML FILES
+-------------------------------------
+
+IMPORTANT PATH RULE:
+Run this to find your home path:
+
+    echo "$HOME"
+
+For example, if it prints /home/osboxes, use /home/osboxes/hadoop in the two XML files
+below. Replace /home/YOUR_USERNAME with your actual home directory. Do not type the
+literal words YOUR_USERNAME.
+
+12. Configure core-site.xml:
+
+    nano "$HADOOP_HOME/etc/hadoop/core-site.xml"
+
+   Replace its contents with:
+
+    <?xml version="1.0"?>
+    <configuration>
+      <property>
+        <name>fs.defaultFS</name>
+        <value>hdfs://localhost:9000</value>
+      </property>
+    </configuration>
+
+13. Configure hdfs-site.xml:
+
+    nano "$HADOOP_HOME/etc/hadoop/hdfs-site.xml"
+
+   Replace its contents with the following. Change /home/YOUR_USERNAME to your actual
+   home path. Replication is 1 because this guide configures one DataNode.
+
+    <?xml version="1.0"?>
+    <configuration>
+      <property>
+        <name>dfs.replication</name>
+        <value>1</value>
+      </property>
+      <property>
+        <name>dfs.namenode.name.dir</name>
+        <value>file:///home/YOUR_USERNAME/hadoop/data/namenode</value>
+      </property>
+      <property>
+        <name>dfs.datanode.data.dir</name>
+        <value>file:///home/YOUR_USERNAME/hadoop/data/datanode</value>
+      </property>
+    </configuration>
+
+14. Create the storage directories:
+
+    mkdir -p "$HADOOP_HOME/data/namenode"
+    mkdir -p "$HADOOP_HOME/data/datanode"
+
+15. Configure mapred-site.xml:
+
+    cp "$HADOOP_HOME/etc/hadoop/mapred-site.xml.template" "$HADOOP_HOME/etc/hadoop/mapred-site.xml"
+    nano "$HADOOP_HOME/etc/hadoop/mapred-site.xml"
+
+   Replace its contents with the following. Replace /home/YOUR_USERNAME/hadoop with your
+   actual Hadoop directory in all four locations:
+
+    <?xml version="1.0"?>
+    <configuration>
+      <property>
+        <name>mapreduce.framework.name</name>
+        <value>yarn</value>
+      </property>
+      <property>
+        <name>mapreduce.application.classpath</name>
+        <value>/home/YOUR_USERNAME/hadoop/share/hadoop/mapreduce/*,/home/YOUR_USERNAME/hadoop/share/hadoop/mapreduce/lib/*</value>
+      </property>
+      <property>
+        <name>yarn.app.mapreduce.am.env</name>
+        <value>HADOOP_MAPRED_HOME=/home/YOUR_USERNAME/hadoop</value>
+      </property>
+      <property>
+        <name>mapreduce.map.env</name>
+        <value>HADOOP_MAPRED_HOME=/home/YOUR_USERNAME/hadoop</value>
+      </property>
+      <property>
+        <name>mapreduce.reduce.env</name>
+        <value>HADOOP_MAPRED_HOME=/home/YOUR_USERNAME/hadoop</value>
+      </property>
+    </configuration>
+
+   If mapred-site.xml already exists and contains settings you need, edit it instead of
+   blindly overwriting it. Ensure the XML remains well-formed.
+
+16. Configure yarn-site.xml:
+
+    nano "$HADOOP_HOME/etc/hadoop/yarn-site.xml"
+
+   Replace its contents with:
+
+    <?xml version="1.0"?>
+    <configuration>
+      <property>
+        <name>yarn.nodemanager.aux-services</name>
+        <value>mapreduce_shuffle</value>
+      </property>
+      <property>
+        <name>yarn.nodemanager.aux-services.mapreduce.shuffle.class</name>
+        <value>org.apache.hadoop.mapred.ShuffleHandler</value>
+      </property>
+    </configuration>
+
+   IMPORTANT: The property is aux-services (with a hyphen), not auxservices.
+
+PART 5 — CONFIGURE PASSWORDLESS SSH
+-----------------------------------
+
+17. Enable and start SSH:
+
+    sudo systemctl enable --now ssh
+
+18. Create the SSH directory and set permissions:
+
+    mkdir -p ~/.ssh
+    chmod 700 ~/.ssh
+
+19. Create an SSH key only if you do not already have one:
+
+    if [ ! -f ~/.ssh/id_rsa ]; then ssh-keygen -t rsa -P '' -f ~/.ssh/id_rsa; fi
+
+20. Add the public key and secure the authorized_keys file:
+
+    touch ~/.ssh/authorized_keys
+    cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+    chmod 600 ~/.ssh/authorized_keys
+
+   If you repeat Step 20, it can append a duplicate key; this normally does not prevent
+   SSH from working, but avoid repeating it unnecessarily.
+
+21. Test SSH:
+
+    ssh localhost
+
+   On the first connection, type yes if asked to trust localhost. If prompted for a
+   password, check the SSH service, key files, and permissions. When connected, type:
+
+    exit
+
+PART 6 — FORMAT AND START HADOOP
+-------------------------------
+
+22. Format the NameNode for a brand-new lab setup only:
+
+    hdfs namenode -format
+
+   WARNING: Do not run this every time you start Hadoop. Formatting an existing NameNode
+   can make existing HDFS data inaccessible.
+
+23. Start HDFS:
+
+    start-dfs.sh
+    jps
+
+   Expected Java processes normally include NameNode, DataNode, SecondaryNameNode, and Jps.
+
+24. Start YARN:
+
+    start-yarn.sh
+    jps
+
+   Expected additional processes normally include ResourceManager and NodeManager.
+
+25. Open the web interfaces in the Ubuntu VM browser:
+
+    HDFS NameNode:       http://localhost:9870
+    YARN ResourceManager: http://localhost:8088
+
+   If a process is missing, inspect the terminal output and Hadoop logs before continuing.
+
+PART 7 — COMPILE AND RUN WORDCOUNT
+----------------------------------
+
+26. Follow code/WORDCOUNT_RUN.txt for the complete WordCount build and execution flow.
+   It creates a Java program, compiles it against Hadoop, packages a JAR, uploads input
+   into HDFS, runs the MapReduce job, and displays the result.
+
+PART 8 — STOP HADOOP
+--------------------
+
+27. Stop YARN and HDFS when finished:
+
+    stop-yarn.sh
+    stop-dfs.sh
+
+PART 9 — TROUBLESHOOTING
+------------------------
+
+- `hadoop: command not found`
+  Run `source ~/.bashrc`, then check `echo "$HADOOP_HOME"` and `hadoop version`.
+
+- `java: command not found` or Hadoop cannot find Java
+  Check `java -version`, `echo "$JAVA_HOME"`, and the JAVA_HOME line in hadoop-env.sh.
+
+- `gzip: stdin: not in gzip format`
+  Run `file hadoop-3.3.6.tar.gz`. The download may be an HTML page rather than the archive.
+
+- SSH asks for a password
+  Check `sudo systemctl status ssh`, `~/.ssh/authorized_keys`, and permissions 700/600.
+
+- NameNode/DataNode missing from `jps`
+  Check the terminal output and logs under `$HADOOP_HOME/logs`.
+
+- `MRAppMaster` class not found
+  Verify `mapred-site.xml` paths use your actual Hadoop directory, confirm HADOOP_MAPRED_HOME,
+  then restart YARN. Make sure XML is valid.
+
+- HDFS connection refused
+  Check `jps`, confirm HDFS is started, and inspect NameNode/DataNode logs.
+
+- Output directory already exists
+  Hadoop normally refuses to overwrite an existing output directory. Remove only the
+  output path before rerunning the job; do not delete the input folder.
+
+QUICK VIVA REVISION
+-------------------
+
+Mapper: Reads input and emits intermediate key-value pairs. WordCount emits (word, 1).
+Shuffle and sort: Groups values for the same key and sorts keys before reduction.
+Reducer: Adds the values for each word and emits the final count.
+HDFS: Hadoop Distributed File System, which stores distributed input/output.
+YARN: Manages cluster resources and schedules applications.
+NameNode: Maintains HDFS filesystem metadata.
+DataNode: Stores HDFS data blocks.
+Combiner: Optional local aggregation; safe for WordCount sum.
+javac: Compiles Java source into class files.
+JAR: Packages compiled Java classes for Hadoop to run.
+Output directory: Must not already exist when starting a standard MapReduce job.
