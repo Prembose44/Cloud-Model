@@ -1,58 +1,323 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Firebase Student CRUD</title>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Student Management | Firebase</title>
 <style>
-body{font-family:Arial,sans-serif;max-width:950px;margin:30px auto;padding:0 16px;color:#222}
-form,section{border:1px solid #ddd;border-radius:9px;padding:16px;margin:16px 0}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
-label{display:block;margin:8px 0}input{box-sizing:border-box;width:100%;padding:10px;margin-top:5px;border:1px solid #bbb;border-radius:5px}
-button{padding:9px 12px;margin:4px;border:0;border-radius:5px;cursor:pointer}.save{background:#1769aa;color:white}.del{background:#b42318;color:white}
-#status{background:#f3f5f7;padding:10px;border-radius:5px;white-space:pre-wrap}.table-wrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse}td,th{padding:9px;border-bottom:1px solid #ddd;text-align:left}th{background:#eef2f6}
-</style></head><body>
-<h1>Student Management</h1><p>Firebase Hosting + Cloud Firestore</p><div id="status">Replace the Firebase configuration before use.</div>
-<form id="form"><h2 id="title">Add Student</h2><input type="hidden" id="docId">
-<div class="grid">
-<label>Name<input id="name" required></label><label>Register Number<input id="registerNumber" required></label>
-<label>Department<input id="department" required></label><label>Email<input id="email" type="email" required></label>
-</div><button class="save" id="save">Add Student</button><button type="button" id="cancel" hidden>Cancel</button></form>
-<section><h2>Registered Students</h2><div class="table-wrap"><table><thead><tr><th>Name</th><th>Register No.</th><th>Department</th><th>Email</th><th>Actions</th></tr></thead><tbody id="rows"></tbody></table></div></section>
+:root{font-family:Inter,Arial,sans-serif;color:#172033;background:#f4f7fb}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh}
+header{background:#152b4b;color:#fff;padding:20px 5%;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+header h1{font-size:22px;margin:0}
+header p{margin:5px 0 0;color:#d4e1f3;font-size:14px}
+main{max-width:1050px;margin:28px auto;padding:0 16px}
+.card{background:#fff;border:1px solid #e0e7f0;border-radius:8px;padding:20px;margin:0 auto 18px;box-shadow:0 4px 16px #13294b0a}
+#authCard{max-width:520px}
+#status:not(.hidden){display:block!important}
+h2{margin:0 0 14px;font-size:20px}
+p{line-height:1.5}
+label{display:block;font-size:14px;font-weight:600;margin:12px 0}
+input{display:block;width:100%;margin-top:6px;padding:12px;border:1px solid #cbd5e1;border-radius:8px;font:inherit}
+button{border:0;border-radius:8px;padding:11px 14px;font:inherit;font-weight:600;cursor:pointer;margin:4px 4px 4px 0}
+button:disabled{opacity:.6;cursor:wait}
+.primary{background:#1769aa;color:white}.secondary{background:#e9f0f8;color:#18324f}.google{background:white;border:1px solid #cbd5e1;color:#222}.danger{background:#b42318;color:#fff}
+.link{background:transparent;color:#1769aa;padding-left:0;padding-right:0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+.hidden{display:none!important}
+#status{background:#eef4fb;border:1px solid #d9e6f5;padding:12px;border-radius:8px;white-space:pre-wrap;overflow-wrap:anywhere;margin:14px 0}
+#userInfo{font-size:14px;color:#d4e1f3}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:650px}
+td,th{padding:11px;border-bottom:1px solid #e2e8f0;text-align:left}
+th{background:#eef3f9}
+.small{font-size:13px;color:#5b677a}
+.auth-actions{display:flex;gap:8px;flex-wrap:wrap}
+@media(max-width:600px){.card{padding:16px}header{padding:16px}}
+</style>
+</head>
+<body>
+<header>
+  <div><h1>Student Management</h1></div>
+  <div id="userInfo">Not signed in</div>
+  <button id="signOutBtn" class="secondary hidden" type="button">Sign out</button>
+</header>
+
+<main>
+  <div id="status" class="hidden" role="status" aria-live="polite"></div>
+
+  <section id="authCard" class="card">
+    <h2 id="authTitle">Sign in to continue</h2>
+    <p class="small">Use your registered email and password, or continue with Google.</p>
+    <form id="authForm">
+      <label>Email address
+        <input id="authEmail" type="email" autocomplete="email" required placeholder="you@example.com">
+      </label>
+      <label>Password
+        <input id="authPassword" type="password" autocomplete="current-password" minlength="6" required placeholder="At least 6 characters">
+      </label>
+      <div class="auth-actions">
+        <button id="emailSubmit" class="primary" type="submit">Sign in</button>
+        <button id="googleBtn" class="google" type="button">Continue with Google</button>
+      </div>
+    </form>
+    <div class="auth-actions">
+      <button id="toggleMode" class="link" type="button">New here? Create an account</button>
+      <button id="resetPasswordBtn" class="link" type="button">Forgot password?</button>
+    </div>
+  </section>
+
+  <section id="appSection" class="hidden">
+    <form id="studentForm" class="card">
+      <h2 id="formTitle">Add Student</h2>
+      <input type="hidden" id="docId">
+      <div class="grid">
+        <label>Name<input id="name" required></label>
+        <label>Register Number<input id="registerNumber" required></label>
+        <label>Department<input id="department" required></label>
+        <label>Student Email<input id="studentEmail" type="email" required></label>
+      </div>
+      <button class="primary" id="saveBtn" type="submit">Add Student</button>
+      <button class="secondary hidden" id="cancelBtn" type="button">Cancel edit</button>
+    </form>
+
+    <section class="card">
+      <h2>Registered Students</h2>
+      <p class="small">This demo allows any authenticated user of this Firebase project to manage the shared student list. Configure stricter Firestore rules for a real application.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Name</th><th>Register No.</th><th>Department</th><th>Email</th><th>Actions</th></tr></thead>
+          <tbody id="rows"><tr><td colspan="5">Sign in to load records.</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+  </section>
+</main>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+  getAuth, onAuthStateChanged, createUserWithEmailAndPassword,
+  signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup,
+  signInWithRedirect, getRedirectResult, signOut, sendPasswordResetEmail
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// Replace placeholders with your app's config from Firebase Console -> Project settings -> Your apps.
+// Replace values with the Firebase configuration from Project settings > General > Your apps.
 const firebaseConfig = {
   apiKey: "YOUR_API_KEY",
   authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
   projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
+  storageBucket: "YOUR_PROJECT_ID.firebasestorage.app",
   messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
   appId: "YOUR_APP_ID"
 };
-const statusBox=document.getElementById("status"), form=document.getElementById("form"), rows=document.getElementById("rows");
-const docId=document.getElementById("docId"), title=document.getElementById("title"), save=document.getElementById("save"), cancel=document.getElementById("cancel");
-let db;
-const say=t=>statusBox.textContent=t;
-const fields=["name","registerNumber","department","email"];
-const data=()=>Object.fromEntries(fields.map(k=>[k,document.getElementById(k).value.trim()]));
-function reset(){form.reset();docId.value="";title.textContent="Add Student";save.textContent="Add Student";cancel.hidden=true}
-async function load(){
- try{
-  const snap=await getDocs(query(collection(db,"students"),orderBy("name")));
-  rows.replaceChildren();
-  if(snap.empty){rows.innerHTML='<tr><td colspan="5">No students found.</td></tr>';return}
-  snap.forEach(d=>{
-   const s={id:d.id,...d.data()},tr=document.createElement("tr");
-   [s.name,s.registerNumber,s.department,s.email].forEach(v=>{const td=document.createElement("td");td.textContent=v||"";tr.appendChild(td)});
-   const td=document.createElement("td"),edit=document.createElement("button"),del=document.createElement("button");
-   edit.textContent="Edit";edit.onclick=()=>{docId.value=s.id;fields.forEach(k=>document.getElementById(k).value=s[k]||"");title.textContent="Update Student";save.textContent="Save Changes";cancel.hidden=false};
-   del.textContent="Delete";del.className="del";del.onclick=async()=>{if(!confirm("Delete "+s.name+"?"))return;try{await deleteDoc(doc(db,"students",s.id));say("Student deleted.");await load()}catch(e){say("Delete failed: "+e.message)}};
-   td.append(edit,del);tr.appendChild(td);rows.appendChild(tr);
-  });
- }catch(e){say("Firestore read failed. Check configuration, database, and rules.\n"+e.message)}
+
+const statusBox = document.getElementById("status");
+const authCard = document.getElementById("authCard");
+const authForm = document.getElementById("authForm");
+const authTitle = document.getElementById("authTitle");
+const emailSubmit = document.getElementById("emailSubmit");
+const toggleMode = document.getElementById("toggleMode");
+const resetPasswordBtn = document.getElementById("resetPasswordBtn");
+const googleBtn = document.getElementById("googleBtn");
+const signOutBtn = document.getElementById("signOutBtn");
+const userInfo = document.getElementById("userInfo");
+const appSection = document.getElementById("appSection");
+const studentForm = document.getElementById("studentForm");
+const rows = document.getElementById("rows");
+const docId = document.getElementById("docId");
+const formTitle = document.getElementById("formTitle");
+const saveBtn = document.getElementById("saveBtn");
+const cancelBtn = document.getElementById("cancelBtn");
+const studentFields = ["name", "registerNumber", "department", "studentEmail"];
+let auth, db, isRegisterMode = false, currentUser = null;
+
+const say = (message) => { statusBox.textContent = message; statusBox.classList.remove("hidden"); };
+const firebaseError = (error) => {
+  const messages = {
+    "auth/invalid-credential": "Email or password is incorrect.",
+    "auth/email-already-in-use": "An account already exists for this email. Sign in instead.",
+    "auth/weak-password": "Choose a stronger password with at least 6 characters.",
+    "auth/invalid-email": "Enter a valid email address.",
+    "auth/popup-closed-by-user": "Google sign-in was cancelled.",
+    "auth/unauthorized-domain": "This domain is not authorized. Add it in Firebase Console > Authentication > Settings > Authorized domains.",
+    "auth/operation-not-allowed": "Enable this sign-in provider in Firebase Console > Authentication > Sign-in method."
+  };
+  return messages[error.code] || error.message || "An unexpected error occurred.";
+};
+
+function setAuthMode(register) {
+  isRegisterMode = register;
+  authTitle.textContent = register ? "Create your account" : "Sign in to continue";
+  emailSubmit.textContent = register ? "Create account" : "Sign in";
+  toggleMode.textContent = register ? "Already registered? Sign in" : "New here? Create an account";
+  document.getElementById("authPassword").autocomplete = register ? "new-password" : "current-password";
 }
-form.onsubmit=async e=>{e.preventDefault();try{if(docId.value){await updateDoc(doc(db,"students",docId.value),data());say("Student updated.")}else{await addDoc(collection(db,"students"),data());say("Student added.")}reset();await load()}catch(err){say("Save failed: "+err.message)}};
-cancel.onclick=reset;
-try{db=getFirestore(initializeApp(firebaseConfig));say("Firebase initialized. Loading records...");await load()}catch(e){say("Firebase initialization failed. Replace config placeholders.\n"+e.message)}
-</script></body></html>
+toggleMode.addEventListener("click", () => setAuthMode(!isRegisterMode));
+
+const studentData = () => Object.fromEntries(studentFields.map(key => [
+  key === "studentEmail" ? "email" : key,
+  document.getElementById(key).value.trim()
+]));
+
+function resetStudentForm() {
+  studentForm.reset();
+  docId.value = "";
+  formTitle.textContent = "Add Student";
+  saveBtn.textContent = "Add Student";
+  cancelBtn.classList.add("hidden");
+}
+cancelBtn.addEventListener("click", resetStudentForm);
+
+authForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  if (!auth) { say("Firebase is not initialized. Replace the configuration placeholders first."); return; }
+  const email = document.getElementById("authEmail").value.trim();
+  const password = document.getElementById("authPassword").value;
+  emailSubmit.disabled = true;
+  try {
+    if (isRegisterMode) {
+      await createUserWithEmailAndPassword(auth, email, password);
+      say("Account created and signed in successfully.");
+    } else {
+      await signInWithEmailAndPassword(auth, email, password);
+      say("Signed in successfully.");
+    }
+  } catch (error) {
+    say(firebaseError(error));
+  } finally {
+    emailSubmit.disabled = false;
+  }
+});
+
+googleBtn.addEventListener("click", async () => {
+  if (!auth) { say("Firebase is not initialized. Replace the configuration placeholders first."); return; }
+  const provider = new GoogleAuthProvider();
+  googleBtn.disabled = true;
+  try {
+    await signInWithPopup(auth, provider);
+    say("Signed in with Google successfully.");
+  } catch (error) {
+    if (error.code === "auth/popup-blocked" || error.code === "auth/operation-not-supported-in-this-environment") {
+      try { await signInWithRedirect(auth, provider); }
+      catch (redirectError) { say(firebaseError(redirectError)); }
+    } else {
+      say(firebaseError(error));
+    }
+  } finally {
+    googleBtn.disabled = false;
+  }
+});
+
+resetPasswordBtn.addEventListener("click", async () => {
+  if (!auth) { say("Firebase is not initialized. Replace the configuration placeholders first."); return; }
+  const email = document.getElementById("authEmail").value.trim();
+  if (!email) { say("Enter your email address first, then click Forgot password."); return; }
+  try {
+    await sendPasswordResetEmail(auth, email);
+    say("Password-reset email sent. Check your inbox.");
+  } catch (error) { say(firebaseError(error)); }
+});
+
+signOutBtn.addEventListener("click", async () => {
+  try { await signOut(auth); say("Signed out."); }
+  catch (error) { say(firebaseError(error)); }
+});
+
+async function loadStudents() {
+  if (!currentUser) return;
+  try {
+    const snapshot = await getDocs(query(collection(db, "students"), orderBy("name")));
+    rows.replaceChildren();
+    if (snapshot.empty) {
+      const tr = document.createElement("tr"), td = document.createElement("td");
+      td.colSpan = 5; td.textContent = "No students found. Add the first student above.";
+      tr.appendChild(td); rows.appendChild(tr); return;
+    }
+    snapshot.forEach((record) => {
+      const student = { id: record.id, ...record.data() };
+      const tr = document.createElement("tr");
+      [student.name, student.registerNumber, student.department, student.email].forEach(value => {
+        const td = document.createElement("td"); td.textContent = value || ""; tr.appendChild(td);
+      });
+      const actions = document.createElement("td");
+      const edit = document.createElement("button");
+      edit.type = "button"; edit.className = "secondary"; edit.textContent = "Edit";
+      edit.addEventListener("click", () => {
+        docId.value = student.id;
+        document.getElementById("name").value = student.name || "";
+        document.getElementById("registerNumber").value = student.registerNumber || "";
+        document.getElementById("department").value = student.department || "";
+        document.getElementById("studentEmail").value = student.email || "";
+        formTitle.textContent = "Update Student";
+        saveBtn.textContent = "Save changes";
+        cancelBtn.classList.remove("hidden");
+        studentForm.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+      const del = document.createElement("button");
+      del.type = "button"; del.className = "danger"; del.textContent = "Delete";
+      del.addEventListener("click", async () => {
+        if (!confirm(`Delete ${student.name || "this student"}?`)) return;
+        try {
+          await deleteDoc(doc(db, "students", student.id));
+          say("Student deleted.");
+          await loadStudents();
+        } catch (error) { say("Delete failed. Check Firestore rules.\\n" + firebaseError(error)); }
+      });
+      actions.append(edit, del); tr.appendChild(actions); rows.appendChild(tr);
+    });
+  } catch (error) {
+    say("Could not read students. Check Firestore is created and the security rules allow signed-in users.\\n" + firebaseError(error));
+  }
+}
+
+studentForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  if (!currentUser) { say("Please sign in before managing students."); return; }
+  try {
+    if (docId.value) {
+      await updateDoc(doc(db, "students", docId.value), studentData());
+      say("Student updated.");
+    } else {
+      await addDoc(collection(db, "students"), studentData());
+      say("Student added.");
+    }
+    resetStudentForm();
+    await loadStudents();
+  } catch (error) {
+    say("Save failed. Check Firestore rules and configuration.\\n" + firebaseError(error));
+  }
+});
+
+try {
+  const app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  db = getFirestore(app);
+  await getRedirectResult(auth);
+  onAuthStateChanged(auth, async (user) => {
+    currentUser = user;
+    if (user) {
+      authCard.classList.add("hidden");
+      appSection.classList.remove("hidden");
+      signOutBtn.classList.remove("hidden");
+      userInfo.textContent = `Signed in: ${user.displayName || user.email || "User"}`;
+      await loadStudents();
+    } else {
+      authCard.classList.remove("hidden");
+      appSection.classList.add("hidden");
+      signOutBtn.classList.add("hidden");
+      userInfo.textContent = "Not signed in";
+      rows.innerHTML = '<tr><td colspan="5">Sign in to load records.</td></tr>';
+    }
+  });
+  statusBox.textContent = "";
+  statusBox.classList.add("hidden");
+} catch (error) {
+  say("Firebase initialization failed. Replace the config placeholders with your Firebase web app configuration.\\n" + firebaseError(error));
+}
+</script>
+</body>
+</html>

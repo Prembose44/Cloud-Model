@@ -1,81 +1,134 @@
-PRACTICAL 2 — FIREBASE HOSTING + CLOUD FIRESTORE CRUD
+PRACTICAL 2 — FIREBASE HOSTING + AUTHENTICATION + CLOUD FIRESTORE CRUD
 Scenario: Student Management
-Files: public/index.html, firebase.json
+Folder: 02_firebase_hosting_firestore
+Features: Email/password sign-in, account creation, password reset, Google sign-in, sign-out, Firestore CRUD, Firebase Hosting.
 
-A. CREATE PROJECT AND WEB APP
+A. CREATE A FIREBASE PROJECT AND REGISTER THE WEB APP
 1. Open https://console.firebase.google.com/ and sign in.
-2. Click Create a project or select your existing project.
-3. Finish the project creation wizard.
-4. Open Project settings (gear icon) -> General.
-5. Under Your apps, click Web (</>) to register a web app.
-6. Give it a nickname and register the app. Hosting can be enabled now or later.
-7. Copy the Firebase configuration object. In public/index.html, replace:
-   YOUR_API_KEY
-   YOUR_PROJECT_ID
-   YOUR_MESSAGING_SENDER_ID
-   YOUR_APP_ID
-   Ensure authDomain and storageBucket also match the values from your own config.
-8. Save the file.
+2. Create a project or select your existing lab project.
+3. Open Project settings (gear icon) -> General.
+4. Under Your apps, click Web (</>) to register a web app.
+5. Give the app a nickname and register it.
+6. Copy the Firebase configuration object. In public/index.html, replace these placeholder values:
+   - YOUR_API_KEY
+   - YOUR_PROJECT_ID
+   - YOUR_MESSAGING_SENDER_ID
+   - YOUR_APP_ID
+   Make sure authDomain and storageBucket are also copied exactly from the config Firebase provides.
+   The storageBucket format can differ between projects; use the actual value from Firebase Console rather than guessing.
 
-B. CREATE FIRESTORE
+B. ENABLE FIREBASE AUTHENTICATION PROVIDERS
+1. In Firebase Console, open Build -> Authentication.
+2. Click Get started if prompted.
+3. Open the Sign-in method / Sign-in providers tab.
+4. Enable Email/Password and save.
+5. Enable Google and save. If asked, select a support email.
+6. In Authentication -> Settings -> Authorized domains, ensure localhost is present for local development.
+   For deployed hosting, your project's *.web.app or *.firebaseapp.com domain is normally added automatically; if sign-in reports an unauthorized domain, add the domain shown in the error.
+7. This app supports:
+   - Create account using email and password (minimum 6 characters).
+   - Sign in using email and password.
+   - Google sign-in.
+   - Password-reset email.
+   - Sign out.
+   The app's student CRUD area is hidden until a user is signed in.
+
+C. CREATE CLOUD FIRESTORE
 1. In Firebase Console, open Build -> Firestore Database.
-2. Click Create database.
-3. Choose a region/location and create it.
-4. This app uses collection name students. Firestore creates it after the first successful Add Student operation.
-5. Security rules:
-   - If using rules that require request.auth != null, this starter needs Firebase Authentication/sign-in code first.
-   - For a short practical demo, use a dedicated test project and temporary rules only if your instructor permits it. Do not leave public read/write rules enabled in a real project.
-   - After the practical, restore appropriate rules.
+2. Click Create database and choose a region/location.
+3. Create the database.
+4. This app uses the collection name students. It is created automatically after the first successful Add Student operation.
+5. Add the rules in section D before testing CRUD.
 
-C. INSTALL FIREBASE CLI
-1. Install Node.js LTS from https://nodejs.org/ if not installed.
-2. Open CMD/VS Code terminal and run:
+D. SET FIRESTORE SECURITY RULES
+1. In Firebase Console -> Firestore Database -> Rules, replace the rules with the following for this lab demo:
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /students/{studentId} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
+
+2. Click Publish.
+3. These rules mean any user authenticated in this Firebase project can read, add, update, and delete any student in the shared students collection. This is suitable only for a simple shared-list practical demo. It does NOT restrict records to their creator. For a real app, add ownership/role-based checks.
+4. Never use public rules such as allow read, write: if true for a real project.
+
+E. INSTALL FIREBASE CLI
+1. Install Node.js LTS from https://nodejs.org/ if it is not installed.
+2. Open CMD / PowerShell / VS Code terminal and run:
    npm install -g firebase-tools
 3. Sign in:
    firebase login
-4. Check:
+4. Verify:
    firebase --version
 
-D. INITIALIZE HOSTING
-1. Open a terminal inside 02_firebase_hosting_firestore.
-2. Confirm this folder contains firebase.json and the public folder.
+F. INITIALIZE / LINK HOSTING
+1. Open terminal inside the 02_firebase_hosting_firestore folder.
+2. Confirm it contains firebase.json and the public folder.
 3. Run:
    firebase projects:list
-   Make sure your Firebase project appears.
-4. If you need to link the folder to your project, run:
+   Confirm your project appears.
+4. If the folder is not linked to your project, run:
    firebase use --add
-   Select the correct project and assign an alias such as default.
-   This creates .firebaserc. If already linked, do not repeat this.
-5. Confirm firebase.json uses "public": "public".
-6. Confirm your app is at public/index.html.
+   Select your Firebase project and use an alias such as default. This creates .firebaserc.
+   Do not repeat this if the folder is already linked correctly.
+5. Check firebase.json uses "public": "public".
+6. Confirm the app file is public/index.html.
 
-E. LOCAL PREVIEW
-1. Run:
+G. TEST LOCALLY
+1. For a quick local preview, run:
    firebase emulators:start --only hosting
-2. Open the local URL printed in the terminal.
-3. If the Hosting emulator is not configured yet, run:
-   firebase init emulators
-   Select Hosting Emulator and accept a free port.
-   Then run the command again.
-4. Test adding/editing/deleting. A local Hosting emulator does not automatically emulate Firestore; the page still calls your real Firestore project unless you configure a Firestore emulator too.
+   If the Hosting emulator is not configured, run firebase init emulators first and select Hosting Emulator.
+2. Open the local URL printed by the CLI.
+3. Authentication and Firestore calls in this starter use your actual Firebase project unless you explicitly configure their emulators. Use a dedicated lab project.
+4. You can also test by opening the page through a local static server, but do not rely on opening index.html with file:// for Google sign-in. A localhost web server is preferred.
 
-F. DEPLOY
-1. Run from this folder:
+H. TEST AUTHENTICATION
+1. Open the app.
+2. Click “New here? Create an account”.
+3. Enter an email address and password with at least 6 characters; click Create account.
+4. After account creation, the app should sign in and show the student form.
+5. Sign out. Sign in again with the same email/password.
+6. Test “Forgot password?”: enter the email address, click Forgot password, then check the email inbox.
+7. Test “Continue with Google”. Select a Google account and approve the sign-in.
+8. If Google sign-in fails, confirm Google is enabled and the current host is in Authentication -> Settings -> Authorized domains.
+
+I. TEST STUDENT CRUD
+1. While signed in, add a student with name, register number, department and student email.
+2. Confirm the student appears in Registered Students.
+3. Click Edit, change a value, and save changes.
+4. Click Delete and confirm.
+5. In Firebase Console -> Firestore Database -> Data, confirm the students collection contains the record.
+6. Sign out. The CRUD screen should be hidden and the app should show the login page.
+
+J. DEPLOY
+1. From this folder, run:
    firebase deploy --only hosting
-2. Wait for deployment to finish.
-3. Open the Hosting URL printed by the CLI.
-4. Test adding, viewing, editing and deleting a student.
-5. In Firebase Console -> Firestore Database -> Data, confirm the students collection contains your records.
+2. Wait for deployment to finish and open the Hosting URL.
+3. Test email/password and Google sign-in on the deployed URL.
+4. If you want to deploy Firestore rules from a rules file, save the same rules as firestore.rules and configure the Firestore rules file in firebase.json, then run:
+   firebase deploy --only firestore:rules
+   Otherwise, publishing rules in Firebase Console (section D) is sufficient for this lab.
+5. Do not upload service-account private keys or real secrets into this folder or GitHub.
 
-G. COMMON ERRORS
-- firebase not recognized: close/reopen terminal after npm global install; check npm global PATH.
-- Not logged in: run firebase login.
+K. COMMON ERRORS
+- firebase not recognized: reopen terminal after npm global install; check npm global PATH.
+- Not logged in to CLI: run firebase login.
 - Wrong project: run firebase projects:list and firebase use --add.
-- 404 after deployment: ensure public/index.html exists and firebase.json public is "public".
-- Firebase config/invalid API key: copy config values exactly from Project settings.
-- Missing/insufficient permissions: inspect Firestore rules; the starter has no login, so authenticated-only rules will deny it.
-- App loads but no data: check browser DevTools Console and Firestore rules.
-- Do not publish private service-account keys in frontend code.
+- Firebase config/invalid API key: copy config exactly from Project settings -> General -> Your apps.
+- auth/operation-not-allowed: enable Email/Password or Google in Authentication -> Sign-in method.
+- auth/unauthorized-domain: add the current domain under Authentication -> Settings -> Authorized domains.
+- Email/password sign-in fails: check that the account exists, email is correct, and password is correct.
+- Password reset not received: check spam and confirm the email address.
+- Missing/insufficient permissions: ensure the user is signed in and the Firestore rules include request.auth != null.
+- App loads but no data: open browser DevTools -> Console and verify Firestore was created and rules are published.
+- Google popup blocked: allow popups for the local/deployed site and retry.
 
 CRUD mapping:
 Create = addDoc; Read = getDocs; Update = updateDoc; Delete = deleteDoc.
+Authentication functions used:
+createUserWithEmailAndPassword, signInWithEmailAndPassword, GoogleAuthProvider,
+signInWithPopup/signInWithRedirect, sendPasswordResetEmail, onAuthStateChanged, signOut.

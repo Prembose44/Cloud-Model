@@ -1,0 +1,27 @@
+PRACTICAL: OPENMP USING C (GCC)
+
+This practical uses OpenMP in C, not MPI. It uses the GCC C compiler (`gcc`), so you do not
+need to install g++ for this C version. GCC must already be installed; verify with `gcc --version`.
+
+Run in Ubuntu/Linux terminal.
+
+1. Verify GCC:
+   gcc --version
+
+2. Open a C source file:
+   nano hello_omp.c
+
+3. Copy the contents of code/hello_omp.c into the file. Save with Ctrl+O, Enter; exit with Ctrl+X.
+
+4. Compile using GCC and OpenMP:
+   gcc -fopenmp hello_omp.c -o hello_omp
+
+5. Run:
+   ./hello_omp
+
+Expected output: four lines, one from each thread ID 0, 1, 2, and 3. The order can vary because
+threads execute concurrently.
+
+If GCC reports `omp.h` missing or OpenMP is unavailable, install the GCC/OpenMP development
+package for your Ubuntu version (for example, `sudo apt install gcc libgomp1`). GCC's OpenMP
+support is commonly provided by libgomp.
